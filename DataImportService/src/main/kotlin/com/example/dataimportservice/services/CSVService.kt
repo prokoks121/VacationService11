@@ -8,6 +8,7 @@ import org.apache.commons.csv.CSVParser
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.stereotype.Component
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
 import java.io.BufferedReader
@@ -16,7 +17,7 @@ import java.io.InputStream
 import java.io.InputStreamReader
 import kotlin.reflect.KClass
 
-@Service
+@Component
 class CSVService @Autowired constructor(
     val employeeService: EmployeeService,
     val usedVacationService: UsedVacationService,

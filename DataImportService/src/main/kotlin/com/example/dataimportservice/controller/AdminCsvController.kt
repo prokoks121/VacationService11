@@ -4,6 +4,9 @@ import com.example.dataimportservice.model.Employee
 import com.example.dataimportservice.model.UsedVacation
 import com.example.dataimportservice.model.Vacation
 import com.example.dataimportservice.services.CSVService
+import com.example.dataimportservice.services.EmployeeService
+import com.example.dataimportservice.services.UsedVacationService
+import com.example.dataimportservice.services.VacationService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
@@ -14,10 +17,7 @@ import org.springframework.web.multipart.MultipartFile
 
 @RestController
 class AdminCsvController @Autowired constructor(
-   /* val employeeService: EmployeeService,
-    val usedVacationService: UsedVacationService,
-    val vacationService: VacationService*/
-val service:CSVService
+    val service:CSVService
 ) {
 
     @PostMapping("/upload/employee")

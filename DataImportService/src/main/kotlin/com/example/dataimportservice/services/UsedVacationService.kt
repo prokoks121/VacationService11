@@ -76,6 +76,7 @@ class UsedVacationService @Autowired constructor(val usedVacationRepository: Use
         }
     }*/
 
+    val formatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL)
 
     fun readData(csvParser:CSVParser):MutableList<UsedVacation>{
         val usedVacations: MutableList<UsedVacation> = ArrayList()
@@ -84,8 +85,8 @@ class UsedVacationService @Autowired constructor(val usedVacationRepository: Use
             if (validateDataFormat(csvRecord["Vacation start date"],csvRecord["Vacation end date"])){
                 val usedVacation = UsedVacation(
                     employeeEmail = csvRecord["Employee"],
-                    vacationEnd = csvRecord["Vacation end date"],
-                    vacationStart = csvRecord["Vacation start date"]
+                    vacationEnd = LocalDate.parse(csvRecord["Vacation end date"], formatter),
+                    vacationStart = LocalDate.parse(csvRecord["Vacation start date"], formatter)
                 )
                 usedVacations.add(usedVacation)
             }else{
