@@ -5,6 +5,8 @@ import com.example.datasearchservice.repository.EmployeeRepository
 import com.example.datasearchservice.repository.UsedVacationRepository
 import com.example.datasearchservice.repository.VacationRepository
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.web.bind.annotation.*
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -19,13 +21,13 @@ class DataSearchController @Autowired constructor(
     val usedVacationRepository: UsedVacationRepository
 ) {
 
-    @GetMapping("/{email}/vacation")
-    fun getEmployeeVacation(@PathVariable email: String,
-                            @RequestParam(required = false) type:String?):HashMap<String,Int>{
+    @GetMapping("/vacation")
+    fun getEmployeeVacation(@RequestParam(required = false) type:String?,
+                            @AuthenticationPrincipal user:UserDetails):HashMap<String,Int>{
         val response = HashMap<String, Int>()
-        if (employeeRepository.existsByEmail(email)){
-            val vacations = vacationRepository.findAllByEmployeeEmail(email)
-            val usedVacations = usedVacationRepository.findAllByEmployeeEmail(email)
+        if (employeeRepository.existsByEmail(user.username)){
+            val vacations = vacationRepository.findAllByEmployeeEmail(user.username)
+            val usedVacations = usedVacationRepository.findAllByEmployeeEmail(user.username)
             var total = 0
             var totalUsed = 0
             vacations.forEach{
@@ -58,9 +60,9 @@ class DataSearchController @Autowired constructor(
         return response
     }
 
-    @GetMapping("/vacation/used/{email}")
+    @GetMapping("/vacation/used")
     fun getListOfUsedVacations(
-        @PathVariable email: String,
+        @AuthenticationPrincipal user:UserDetails,
         @RequestParam(required = true) dateStart:String,
         @RequestParam(required = true) dateEnd:String
     ):List<UsedVacation>{
@@ -68,25 +70,23 @@ class DataSearchController @Autowired constructor(
             val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
             return usedVacationRepository
                 .findAllBetweenDates(
-                    email,
+                    user.username,
                     LocalDate.parse(dateStart, formatter),
                     LocalDate.parse(dateEnd, formatter))
         }else{
             throw RuntimeException("Data format exceptio")
         }
-
     }
 
-
-    @PostMapping("/add/used-vacation/{email}")
+    @PostMapping("/vacation/used")
     fun addUsedVacation(
         @RequestBody data:List<String>,
-        @PathVariable email: String
+        @AuthenticationPrincipal user:UserDetails
     ): UsedVacation {
-        if (employeeRepository.existsByEmail(email) && validateDataFormat(data[0],data[1])) {
+        if (employeeRepository.existsByEmail(user.username) && validateDataFormat(data[0],data[1])) {
             val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
             val usedVacation = UsedVacation(
-                employeeEmail = email,
+                employeeEmail = user.username,
                 vacationStart = LocalDate.parse(data[0], formatter),
                 vacationEnd = LocalDate.parse(data[1], formatter)
             )
