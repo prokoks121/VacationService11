@@ -1,6 +1,5 @@
 package com.example.dataimportservice.security
 
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.annotation.Order
 import org.springframework.security.authentication.BadCredentialsException

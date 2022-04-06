@@ -1,6 +1,7 @@
 package com.example.dataimportservice.services
 
 import com.example.dataimportservice.model.Employee
+import com.example.dataimportservice.model.SuccessResponse
 import com.example.dataimportservice.model.UsedVacation
 import com.example.dataimportservice.model.Vacation
 import org.apache.commons.csv.CSVFormat
@@ -9,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
-import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
 import java.io.BufferedReader
 import java.io.IOException
@@ -29,8 +29,8 @@ class CSVService @Autowired constructor(
     fun hasCSVFormat(file: MultipartFile): Boolean {
         return TYPE == file.contentType
     }
-    fun <T:Any> csvToVacations(inputStream: InputStream,readFirstLine:Boolean,type:KClass<T>): List<T> {
-        var firstLine:String = ""
+    fun <T:Any> csvToData(inputStream: InputStream, readFirstLine:Boolean, type:KClass<T>): List<T> {
+        var firstLine = ""
         try {
             BufferedReader(InputStreamReader(inputStream, "UTF-8")).use { fileReader ->
                 if (readFirstLine){
@@ -63,7 +63,7 @@ class CSVService @Autowired constructor(
 
     fun <T:Any>  save(file: MultipartFile,readFirstLine:Boolean = false,type: KClass<T>) {
         try {
-            val list: List<T> = csvToVacations(file.inputStream,readFirstLine,type)
+            val list: List<T> = csvToData(file.inputStream,readFirstLine,type)
              when(type){
                 Vacation::class -> {
                     vacationService.save(list as List<Vacation>)
@@ -82,21 +82,20 @@ class CSVService @Autowired constructor(
         }
     }
 
-    fun <T:Any> readCSVData(file: MultipartFile,readFirstLine:Boolean = false,type: KClass<T>):ResponseEntity<String>{
+    fun <T:Any> readCSVData(file: MultipartFile,readFirstLine:Boolean = false,type: KClass<T>):ResponseEntity<SuccessResponse>{
         var message = ""
         if (hasCSVFormat(file)) {
             return try {
                 save(file,readFirstLine,type)
                 message = "Uploaded the file successfully: " + file.originalFilename
-                ResponseEntity.status(HttpStatus.OK).body<String>(message)
+                ResponseEntity(SuccessResponse(HttpStatus.CREATED,message),HttpStatus.CREATED)
             } catch (e: Exception) {
                 message = "Could not upload the file: " + file.originalFilename + "! "  + e.message
-                ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body<String>(message)
+                ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(message)
+                ResponseEntity(SuccessResponse(HttpStatus.EXPECTATION_FAILED,message),HttpStatus.EXPECTATION_FAILED)
             }
         }
         message = "Please upload a csv file!"
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body<String>(message)
+        return ResponseEntity(SuccessResponse(HttpStatus.BAD_REQUEST,message),HttpStatus.BAD_REQUEST)
     }
-
-
 }

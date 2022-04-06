@@ -1,16 +1,18 @@
 package com.example.datasearchservice.controller
 
+import com.example.datasearchservice.model.SuccessResponse
 import com.example.datasearchservice.model.UsedVacation
 import com.example.datasearchservice.repository.EmployeeRepository
 import com.example.datasearchservice.repository.UsedVacationRepository
 import com.example.datasearchservice.repository.VacationRepository
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.web.bind.annotation.*
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
 import java.time.temporal.ChronoUnit
 
 @RestController
@@ -82,7 +84,7 @@ class DataSearchController @Autowired constructor(
     fun addUsedVacation(
         @RequestBody data:List<String>,
         @AuthenticationPrincipal user:UserDetails
-    ): UsedVacation {
+    ): ResponseEntity<HashMap<String,Any>> {
         if (employeeRepository.existsByEmail(user.username) && validateDataFormat(data[0],data[1])) {
             val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
             val usedVacation = UsedVacation(
@@ -91,7 +93,10 @@ class DataSearchController @Autowired constructor(
                 vacationEnd = LocalDate.parse(data[1], formatter)
             )
             usedVacationRepository.save(usedVacation)
-            return usedVacation
+            val hashMap = HashMap<String,Any>()
+            hashMap["response"] = SuccessResponse(HttpStatus.CREATED,"Successfully added uesd vacation")
+            hashMap["used_vacation"] = usedVacation
+            return ResponseEntity(hashMap,HttpStatus.CREATED)
         }
         else
             throw java.lang.RuntimeException("Korisnik ne postoji")
