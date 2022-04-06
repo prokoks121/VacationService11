@@ -2,6 +2,7 @@ package com.example.dataimportservice.controller
 
 import com.example.dataimportservice.services.EmployeeService
 import com.example.dataimportservice.services.UsedVacationService
+import com.example.dataimportservice.services.VacationService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -15,7 +16,7 @@ import org.springframework.web.multipart.MultipartFile
 class AdminCsvController @Autowired constructor(
     val employeeService: EmployeeService,
     val usedVacationService: UsedVacationService,
-    val
+    val vacationService: VacationService
 ) {
 
     @PostMapping("/upload/employee")
@@ -55,13 +56,13 @@ class AdminCsvController @Autowired constructor(
     @PostMapping("/upload/vacation")
     fun uploadVacations(@RequestParam("file") file: MultipartFile): ResponseEntity<String> {
         var message = ""
-        if (usedVacationService.hasCSVFormat(file)) {
+        if (vacationService.hasCSVFormat(file)) {
             return try {
-                usedVacationService.save(file)
+                vacationService.save(file)
                 message = "Uploaded the file successfully: " + file.originalFilename
                 ResponseEntity.status(HttpStatus.OK).body<String>(message)
             } catch (e: Exception) {
-                message = "Could not upload the file: " + file.originalFilename + "!"
+                message = "Could not upload the file: " + file.originalFilename + "! " + e.message
                 ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body<String>(message)
             }
         }

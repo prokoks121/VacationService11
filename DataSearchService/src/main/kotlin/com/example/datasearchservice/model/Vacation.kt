@@ -9,5 +9,5 @@ data class Vacation(
     val id:Long = 0,
     val totalDays:Int,
     val employeeEmail:String,
-    val year:Int
+    val year:String
 )
