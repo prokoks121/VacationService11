@@ -1,6 +1,7 @@
 package com.example.dataimportservice.services
 
 import com.example.dataimportservice.model.Employee
+import com.example.dataimportservice.model.Vacation
 import com.example.dataimportservice.repository.EmployeeRepository
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.csv.CSVParser
@@ -20,7 +21,7 @@ class EmployeeService @Autowired constructor(
     val employeeRepository: EmployeeRepository
 ) {
 
-    var TYPE = "text/csv"
+  /*  var TYPE = "text/csv"
     var HEADERS = arrayOf("Employee Email", "Employee Password")
 
 
@@ -62,5 +63,23 @@ class EmployeeService @Autowired constructor(
             throw RuntimeException("fail to store csv data: " + e.message)
         }
     }
+*/
 
+    fun readData(csvParser:CSVParser, firstLine:String = ""):MutableList<Employee>{
+        val employee: MutableList<Employee> = ArrayList()
+        val csvRecords: Iterable<CSVRecord> = csvParser.records
+        for (csvRecord in csvRecords) {
+            val tutorial = Employee(
+                email = csvRecord["Employee Email"],
+                password = csvRecord["Employee Password"]
+            )
+            employee.add(tutorial)
+        }
+        return employee
+    }
+
+
+    fun save(vacations: List<Employee>) {
+        employeeRepository.saveAll(vacations)
+    }
 }

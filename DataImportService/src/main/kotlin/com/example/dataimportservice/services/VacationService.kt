@@ -17,7 +17,7 @@ import java.io.InputStreamReader
 @Service
 class VacationService @Autowired constructor(val vacationRepository: VacationRepository) {
 
-    var TYPE = "text/csv"
+ /*   var TYPE = "text/csv"
 
     fun hasCSVFormat(file: MultipartFile): Boolean {
         return TYPE == file.contentType
@@ -59,6 +59,25 @@ class VacationService @Autowired constructor(val vacationRepository: VacationRep
             throw RuntimeException("fail to store csv data: " + e.message)
         }
     }
+*/
 
+    fun readData(csvParser:CSVParser, firstLine:String = ""):MutableList<Vacation>{
+        val vacations: MutableList<Vacation> = ArrayList()
+        val csvRecords: Iterable<CSVRecord> = csvParser.records
+        for (csvRecord in csvRecords) {
+            val vacation = Vacation(
+                employeeEmail = csvRecord["Employee"],
+                totalDays = csvRecord["Total vacation days"].toInt(),
+                year = firstLine,
+            )
+            vacations.add(vacation)
+        }
+        return vacations
+    }
+
+
+    fun save(vacations: List<Vacation>) {
+            vacationRepository.saveAll(vacations)
+    }
 
 }
