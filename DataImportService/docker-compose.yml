@@ -1,0 +1,26 @@
+version: '3.1'
+services:
+  data-import-service:
+    container_name: data-import
+    image: data-import
+    build: ./
+    ports:
+      - "8123:8123"
+    depends_on:
+      - dbpostgresql
+  app:
+    container_name: app-springboot-postgresql
+    image: app-springboot-postgresql
+    build: ../DataSearchService
+    ports:
+      - "8223:8223"
+    depends_on:
+      - dbpostgresql
+  dbpostgresql:
+    image: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=vacation
