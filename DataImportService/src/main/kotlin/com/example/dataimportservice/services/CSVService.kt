@@ -1,58 +1,35 @@
 package com.example.dataimportservice.services
 
-import com.example.dataimportservice.model.Employee
 import com.example.dataimportservice.model.SuccessResponse
-import com.example.dataimportservice.model.UsedVacation
-import com.example.dataimportservice.model.Vacation
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.csv.CSVParser
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.stereotype.Component
 import org.springframework.web.multipart.MultipartFile
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
-import kotlin.reflect.KClass
 
-@Component
-class CSVService @Autowired constructor(
-    val employeeService: EmployeeService,
-    val usedVacationService: UsedVacationService,
-    val vacationService: VacationService
-)
-{
+abstract class CSVService<T> {
     var TYPE = "text/csv"
 
-    fun hasCSVFormat(file: MultipartFile): Boolean {
+    private fun hasCSVFormat(file: MultipartFile): Boolean {
         return TYPE == file.contentType
     }
-    fun <T:Any> csvToData(inputStream: InputStream, readFirstLine:Boolean, type:KClass<T>): List<T> {
+
+    fun csvToData(inputStream: InputStream, readFirstLine: Boolean): MutableList<T> {
         var firstLine = ""
         try {
             BufferedReader(InputStreamReader(inputStream, "UTF-8")).use { fileReader ->
-                if (readFirstLine){
+                if (readFirstLine) {
                     firstLine = fileReader.readLine().toString().split(",")[1]
                 }
                 CSVParser(
                     fileReader,
                     CSVFormat.DEFAULT.withFirstRecordAsHeader().withIgnoreHeaderCase().withTrim()
                 ).use { csvParser ->
-                    return when(type){
-                        Vacation::class -> {
-                            vacationService.readData(csvParser,firstLine) as List<T>
-                        }
-                        UsedVacation::class ->{
-                            usedVacationService.readData(csvParser) as List<T>
-                        }
-                        Employee::class ->{
-                            employeeService.readData(csvParser) as List<T>
-                        }
-                        else-> throw RuntimeException("fail type: ")
-
-                    }
+                    return readData(csvParser, firstLine)
                 }
             }
         } catch (e: IOException) {
@@ -60,42 +37,31 @@ class CSVService @Autowired constructor(
         }
     }
 
-
-    fun <T:Any>  save(file: MultipartFile,readFirstLine:Boolean = false,type: KClass<T>) {
+    abstract fun readData(csvParser: CSVParser, firstLine: String = ""): MutableList<T>
+    protected abstract fun save(vacations: MutableList<T>)
+    private fun save(file: MultipartFile, readFirstLine: Boolean = false) {
         try {
-            val list: List<T> = csvToData(file.inputStream,readFirstLine,type)
-             when(type){
-                Vacation::class -> {
-                    vacationService.save(list as List<Vacation>)
-                }
-                UsedVacation::class ->{
-                    usedVacationService.save(list as List<UsedVacation>)
-                }
-                Employee::class ->{
-                    employeeService.save(list as List<Employee>)
-                }
-                else-> throw RuntimeException("fail type: ")
-            }
-
+            val list: MutableList<T> = csvToData(file.inputStream, readFirstLine)
+            save(list)
         } catch (e: IOException) {
             throw RuntimeException("fail to store csv data: " + e.message)
         }
     }
 
-    fun <T:Any> readCSVData(file: MultipartFile,readFirstLine:Boolean = false,type: KClass<T>):ResponseEntity<SuccessResponse>{
+    fun readCSVData(file: MultipartFile, readFirstLine: Boolean = false): ResponseEntity<SuccessResponse> {
         var message = ""
         if (hasCSVFormat(file)) {
             return try {
-                save(file,readFirstLine,type)
+                save(file, readFirstLine)
                 message = "Uploaded the file successfully: " + file.originalFilename
-                ResponseEntity(SuccessResponse(HttpStatus.CREATED,message),HttpStatus.CREATED)
+                ResponseEntity(SuccessResponse(HttpStatus.CREATED, message), HttpStatus.CREATED)
             } catch (e: Exception) {
-                message = "Could not upload the file: " + file.originalFilename + "! "  + e.message
+                message = "Could not upload the file: " + file.originalFilename + "! " + e.message
                 ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(message)
-                ResponseEntity(SuccessResponse(HttpStatus.EXPECTATION_FAILED,message),HttpStatus.EXPECTATION_FAILED)
+                ResponseEntity(SuccessResponse(HttpStatus.EXPECTATION_FAILED, message), HttpStatus.EXPECTATION_FAILED)
             }
         }
         message = "Please upload a csv file!"
-        return ResponseEntity(SuccessResponse(HttpStatus.BAD_REQUEST,message),HttpStatus.BAD_REQUEST)
+        return ResponseEntity(SuccessResponse(HttpStatus.BAD_REQUEST, message), HttpStatus.BAD_REQUEST)
     }
 }

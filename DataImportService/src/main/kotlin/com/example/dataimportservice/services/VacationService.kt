@@ -8,9 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 @Service
-class VacationService @Autowired constructor(val vacationRepository: VacationRepository) {
+class VacationService @Autowired constructor(val vacationRepository: VacationRepository) : CSVService<Vacation>() {
 
-    fun readData(csvParser:CSVParser, firstLine:String = ""):MutableList<Vacation>{
+    override fun readData(csvParser: CSVParser, firstLine: String): MutableList<Vacation> {
         val vacations: MutableList<Vacation> = ArrayList()
         val csvRecords: Iterable<CSVRecord> = csvParser.records
         for (csvRecord in csvRecords) {
@@ -24,8 +24,9 @@ class VacationService @Autowired constructor(val vacationRepository: VacationRep
         return vacations
     }
 
-    fun save(vacations: List<Vacation>) {
-            vacationRepository.saveAll(vacations)
+    override fun save(vacations: MutableList<Vacation>) {
+        vacationRepository.saveAll(vacations)
     }
+
 
 }

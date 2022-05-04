@@ -10,8 +10,8 @@ import org.springframework.stereotype.Service
 @Service
 class EmployeeService @Autowired constructor(
     val employeeRepository: EmployeeRepository
-) {
-    fun readData(csvParser:CSVParser, firstLine:String = ""):MutableList<Employee>{
+) : CSVService<Employee>() {
+    override fun readData(csvParser: CSVParser, firstLine: String): MutableList<Employee> {
         val employee: MutableList<Employee> = ArrayList()
         val csvRecords: Iterable<CSVRecord> = csvParser.records
         for (csvRecord in csvRecords) {
@@ -24,7 +24,8 @@ class EmployeeService @Autowired constructor(
         return employee
     }
 
-    fun save(vacations: List<Employee>) {
+    override fun save(vacations: MutableList<Employee>) {
         employeeRepository.saveAll(vacations)
     }
+
 }

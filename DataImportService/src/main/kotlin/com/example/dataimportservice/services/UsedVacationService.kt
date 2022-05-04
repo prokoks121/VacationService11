@@ -11,11 +11,12 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
 @Service
-class UsedVacationService @Autowired constructor(val usedVacationRepository: UsedVacationRepository) {
+class UsedVacationService @Autowired constructor(val usedVacationRepository: UsedVacationRepository):
+    CSVService<UsedVacation>() {
 
     val formatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL)
 
-    fun readData(csvParser:CSVParser):MutableList<UsedVacation>{
+    override fun readData(csvParser:CSVParser, firstLine:String):MutableList<UsedVacation>{
         val usedVacations: MutableList<UsedVacation> = ArrayList()
         val csvRecords: Iterable<CSVRecord> = csvParser.records
         for (csvRecord in csvRecords) {
@@ -34,7 +35,7 @@ class UsedVacationService @Autowired constructor(val usedVacationRepository: Use
     }
 
 
-    fun save(vacations: List<UsedVacation>) {
+    override fun save(vacations: MutableList<UsedVacation>) {
         usedVacationRepository.saveAll(vacations)
     }
 

@@ -1,10 +1,7 @@
 package com.example.dataimportservice.controller
 
-import com.example.dataimportservice.model.Employee
 import com.example.dataimportservice.model.SuccessResponse
-import com.example.dataimportservice.model.UsedVacation
-import com.example.dataimportservice.model.Vacation
-import com.example.dataimportservice.services.CSVService
+import com.example.dataimportservice.services.DataImportServices
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
@@ -13,24 +10,24 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
 
 
-@RestController
+@RestController("/upload")
 class AdminCsvController @Autowired constructor(
-    val service:CSVService
+    val dataImportServices: DataImportServices
 ) {
 
-    @PostMapping("/upload/employee")
+    @PostMapping("/employee")
     fun uploadEmployee(@RequestParam("file") file: MultipartFile): ResponseEntity<SuccessResponse> {
-        return  service.readCSVData(file,true,Employee::class)
+        return  dataImportServices.addEmployees(file,true)
     }
 
-    @PostMapping("/upload/used-vacation")
+    @PostMapping("/used-vacation")
     fun uploadUsedVacations(@RequestParam("file") file: MultipartFile): ResponseEntity<SuccessResponse> {
-              return service.readCSVData(file,false,UsedVacation::class)
+              return dataImportServices.addVacations(file,false)
     }
 
-    @PostMapping("/upload/vacation")
+    @PostMapping("/vacation")
     fun uploadVacations(@RequestParam("file") file: MultipartFile): ResponseEntity<SuccessResponse> {
-        return service.readCSVData(file,true,Vacation::class)
+        return dataImportServices.addUsedVacations(file,true)
     }
 
 }
